@@ -96,6 +96,7 @@ def write(filename, data, header=None, size_padding=0):
 
     # Write file
     file_handle = open(filename, 'wb')
+    file_handle.write(header)
     # file_handle.write(header['version'])
     # file_handle.write(header['convention'])
     # file_handle.write(header['contents'])
