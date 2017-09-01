@@ -96,10 +96,7 @@ def write(filename, data, header=None, size_padding=0):
 
     # Write file
     file_handle = open(filename, 'wb')
-    file_handle.write(header)
-    # file_handle.write(header['version'])
-    # file_handle.write(header['convention'])
-    # file_handle.write(header['contents'])
+    file_handle.write(MinicbfTemplate(header).to_string())
     file_handle.write(header_base.format(compression_algorithm=compression_algorithm,
                                          binary_size=output_buffer_size,
                                          number_of_elements=data.size,
@@ -244,3 +241,49 @@ def uncompress(binary_data, size_x, size_y, data_type):
     numpy_array = numpy.fromstring(output_buffer, dtype=data_type)
     numpy_array = numpy_array.reshape(size_x, size_y)
     return numpy_array
+
+class MinicbfTemplate:
+    _template ="""
+###CBF: VERSION 1.7.10
+# CBF file written by CBFlib v1.1.3
+
+data_image_1
+
+_array_data.header_convention SLS_1.0
+_array_data.header_contents
+;
+# Detector: %(detector)s
+# Pixel_size %(pixel_size)E m x %(pixel_size)E m
+# Silicon sensor, thickness %(sensor_thickness).6f m
+# Exposure_time %(count_time).6f s
+# Exposure_period %(frame_time).6f s
+# Count_cutoff %(count_cutoff)d counts
+# Wavelength %(wavelength).6f A
+# Detector_distance %(detector_distance).6f m
+# Beam_xy (%(beam_x).1f, %(beam_y).1f) pixels
+# Start_angle %(start_angle).6f deg.
+# Angle_increment %(osc_range).6f deg.
+;
+        """
+    def __init__(self, dict={}):
+        self.dict = dict
+
+    def to_string(self):
+        return self._template % self
+
+    def __getitem__(self, key):
+        return self._process(key.split("|"))
+
+    def _process(self, l):
+        arg = l[0]
+        if len(l) == 1:
+            if arg in self.dict:
+                return self.dict[arg]
+            elif hasattr(self, arg) and callable(getattr(self, arg)):
+                return getattr(self, arg)()
+            else:
+                raise KeyError(arg)
+        else:
+            func = l[1]
+            return getattr(self, func)(self._process([arg]))
+
