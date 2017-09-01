@@ -243,8 +243,7 @@ def uncompress(binary_data, size_x, size_y, data_type):
     return numpy_array
 
 class MinicbfTemplate:
-    _template ="""
-###CBF: VERSION 1.7.10
+    _template ="""###CBF: VERSION 1.7.10
 # CBF file written by CBFlib v1.1.3
 
 data_image_1
@@ -264,7 +263,7 @@ _array_data.header_contents
 # Start_angle %(start_angle).6f deg.
 # Angle_increment %(osc_range).6f deg.
 ;
-        """
+"""
     def __init__(self, dict={}):
         self.dict = dict
 
