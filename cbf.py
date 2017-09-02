@@ -62,10 +62,10 @@ header_end_mark = b'\x0C\x1A\x04\xD5'
 end_binary_section = "\r\n--CIF-BINARY-FORMAT-SECTION----\r\n;\r\n"
 
 
-def write(filename, data, header=None, size_padding=0):
+def write(output, data, header=None, size_padding=0):
     """
     Write CBF file
-    :param filename: Filename of cbf file to write
+    :param output: File_handle or StringIO to write
     :param data: Data to write to cbf file (numpy array)
     :param header: Custom header to write to file
     :param size_padding: Number of bytes to pad at the end of the binary section
@@ -94,25 +94,24 @@ def write(filename, data, header=None, size_padding=0):
 
     md5_hash = base64.b64encode(hashlib.md5(output_buffer).digest()).decode()
 
-    # Write file
-    file_handle = open(filename, 'wb')
-    file_handle.write(MinicbfTemplate(header).to_string())
-    file_handle.write(header_base.format(compression_algorithm=compression_algorithm,
+    # Write file, or memory
+    #file_handle = open(filename, 'wb')
+    output.write(MinicbfTemplate(header).to_string())
+    output.write(header_base.format(compression_algorithm=compression_algorithm,
                                          binary_size=output_buffer_size,
                                          number_of_elements=data.size,
                                          size_fastest_dimension=data.shape[1],
                                          size_second_dimension=data.shape[0],
                                          md5_hash=md5_hash, element_type=element_type,
                                          size_padding=size_padding).encode())
-    file_handle.write(header_end_mark)
-    file_handle.write(output_buffer)
+    output.write(header_end_mark)
+    output.write(output_buffer)
 
     if size_padding:
         padding_bytes = b'\x00'*size_padding
-        file_handle.write(padding_bytes)
-    file_handle.write(end_binary_section.encode())
-
-    file_handle.close()
+        output.write(padding_bytes)
+    output.write(end_binary_section.encode())
+    #output.close()
 
 
 def read(filename, metadata=True, parse_miniheader=False):
